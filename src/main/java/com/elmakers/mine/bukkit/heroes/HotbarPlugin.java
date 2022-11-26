@@ -21,6 +21,8 @@ public class HotbarPlugin extends JavaPlugin {
     private HotbarController controller;
     private Plugin heroesPlugin;
 
+
+
     /*
      * Plugin interface
      */

@@ -21,6 +21,9 @@ disabled_icon_url: http://textures.minecraft.net/texture/1c28376acb23cd93322c0a5
 # Set to 0 to disable the cooldown timers.
 update_interval: 10
 
+# if true then skills must be right clicked to use them
+right-click-to-use: false
+
 # In-game text
 
 skills:
@@ -43,7 +46,18 @@ skills:
     prepared: "&bYou prepared &3$skill, &e$points &bpoints and &e$slots &bslots remaining"
     unprepared: "&2You unprepared &3$skill, &e$points &2points and &e$slots &2slots available"
     unprepare_lore: "&bRight-click or drop to unprepare"
-
+    delay: "&eDelay: &6$time"
+elements:
+    physical: "&c🗡"
+    force: "&f🌊"
+    acid: "&a☣"
+    poison: "&2💀"
+    fire: "&4🔥"
+    lightning: "&e⚡"
+    frost: "&b❄"
+    psychic: "&d₪"
+    radiant: "&6☀"
+    necrotic: "&8☽"
 cooldown:
     wait_seconds: another $seconds seconds
     wait_minutes: another $minutes minutes

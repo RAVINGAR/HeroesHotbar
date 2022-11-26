@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+import com.herocraftonline.heroes.characters.skill.SkillType;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.configuration.Configuration;
@@ -60,7 +61,10 @@ public class HotbarController {
     private PlayerProfile disabledIcon;
     private PlayerProfile unknownIcon;
 
+    private boolean useRightClicks;
+
     private final Map<UUID, SkillSelector> selectors = new HashMap<>();
+
 
     public HotbarController(Plugin owningPlugin, Heroes heroesPlugin) {
         this.plugin = owningPlugin;
@@ -80,6 +84,7 @@ public class HotbarController {
         CompatibilityUtils.getUnknownIcon(this, UUID.fromString("606e2ff0-ed77-4842-9d6c-e1d3321c7838"));
 
         skillInventoryRows = config.getInt("skill_inventory_max_rows", 6);
+        useRightClicks = config.getBoolean("right-click-to-use", false);
 
         int hotbarUpdateInterval = config.getInt("update_interval");
         if (hotbarUpdateInterval > 0) {
@@ -167,6 +172,8 @@ public class HotbarController {
         CompatibilityUtils.setLore(item, lore);
     }
 
+    public boolean isUseRightClicks() { return useRightClicks; }
+
     public void updateSkillItem(ItemStack item, SkillDescription skill, Player player) {
         boolean unavailable = !canUseSkill(player, skill.getKey());
 
@@ -236,6 +243,13 @@ public class HotbarController {
         if (description != null && description.length() > 0) {
             description = getMessage("skills.description", "$description").replace("$description", description);
             CompatibilityUtils.wrapText(description, MAX_LORE_LENGTH, lore);
+        }
+        int delay = SkillConfigManager.getUseSetting(hero, skill, SkillSetting.DELAY, 0, true);
+        if(delay > 0) {
+            String delayDescription = getTimeDescription(delay);
+            if(delayDescription != null && !delayDescription.isEmpty()) {
+                lore.add(getMessage("skills.delay", "$time").replace("$time", delayDescription));
+            }
         }
 
         int cooldown = SkillConfigManager.getUseSetting(hero, skill, SkillSetting.COOLDOWN, 0, true);

@@ -2,10 +2,10 @@ name: HeroesHotbar
 main: com.elmakers.mine.bukkit.heroes.HotbarPlugin
 version: ${project.version}
 website: http://mine.elmakers.com
-author: NathanWolf
+author: NathanWolf, RAVINGAR
 description : A hotbar GUI for Heroes skills
 depend: [Heroes]
-api-version: 1.16
+api-version: 1.18
 commands:
   skillmenu:
     description: Get Heroes skills
