@@ -49,7 +49,7 @@ public class PlayerListener implements Listener {
 
         // Catch lag-related glitches dropping items from GUIs
         SkillSelector selector = controller.getActiveSkillSelector(player);
-        if (selector != null && selector.isGuiOpen()) {
+        if (selector.isGuiOpen()) {
             event.setCancelled(true);
         }
     }
@@ -101,30 +101,18 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onLevelUp(HeroChangeLevelEvent event) {
-        SkillSelector selector = controller.getActiveSkillSelector(event.getHero().getPlayer());
-        if(selector != null) {
-            selector.updateSkillsForLevelUp();
-        }
+        controller.getActiveSkillSelector(event.getHero().getPlayer()).updateSkillsForLevelUp();
     }
 
     @EventHandler
     public void onClassChange(AfterClassChangeEvent event) {
         Player player = event.getHero().getPlayer();
-        SkillSelector selector = controller.getActiveSkillSelector(player);
-        if(selector != null) {
-            selector.refreshAllSkills();
-            controller.removeAllSkillItems(player);
-        }
-        else {
-            controller.addActiveSkillSelector(event.getHero().getPlayer());
-        }
+        controller.getActiveSkillSelector(player).refreshAllSkills();
+        controller.removeAllSkillItems(player);
     }
 
     @EventHandler
-    public void onInventoryClose(InventoryCloseEvent e) {
-        SkillSelector selector = controller.getActiveSkillSelector(e.getPlayer());
-        if(selector != null) {
-            selector.setGuiState(false);
-        }
+    public void onInventoryClose(InventoryCloseEvent event) {
+        controller.getActiveSkillSelector(event.getPlayer()).setGuiState(false);
     }
 }

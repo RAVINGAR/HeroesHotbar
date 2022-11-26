@@ -3,8 +3,6 @@ package com.elmakers.mine.bukkit.heroes.controller;
 import java.util.*;
 import java.util.logging.Level;
 
-import com.elmakers.mine.bukkit.heroes.controller.HotbarController;
-import com.elmakers.mine.bukkit.heroes.controller.SkillDescription;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryAction;
@@ -13,7 +11,7 @@ import org.bukkit.inventory.Inventory;
 
 import com.elmakers.mine.bukkit.heroes.utilities.CompatibilityUtils;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 
 public class SkillSelector {
     private final HotbarController controller;
@@ -132,8 +130,11 @@ public class SkillSelector {
         return guiOpen;
     }
 
-    @Nullable
+    @Nonnull
     public SkillDescription getSkill(String skillName) {
+        if(!this.allSkills.containsKey(skillName)) {
+            throw new IllegalArgumentException("Skill called " + skillName + " was not found in skill selector!");
+        }
         return this.allSkills.get(skillName);
     }
 

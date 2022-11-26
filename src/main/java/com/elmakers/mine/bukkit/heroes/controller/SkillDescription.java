@@ -6,7 +6,10 @@ import com.herocraftonline.heroes.characters.skill.SkillConfigManager;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.profile.PlayerProfile;
+
+import java.util.Optional;
 
 public class SkillDescription implements Comparable<SkillDescription> {
     private final String skillKey;
@@ -24,7 +27,14 @@ public class SkillDescription implements Comparable<SkillDescription> {
         this.skillLevel = controller.getSkillLevel(player, skillKey);
 
         String skillDisplayName = skill == null ? null : SkillConfigManager.getRaw(skill, "name", skill.getName());
-        this.name = skillDisplayName == null || skillDisplayName.isEmpty() ? skillKey : skillDisplayName;
+        skillDisplayName = skillDisplayName == null || skillDisplayName.isEmpty() ? skillKey : skillDisplayName;
+        if(controller.isElementsEnabled() && skill != null) {
+            Optional<String> e = controller.getElementFromSkill(skill);
+            if(e.isPresent()) {
+                skillDisplayName += " " + controller.getMessage("elements." + e.get().toLowerCase());
+            }
+        }
+        this.name = skillDisplayName;
         this.description = skill == null ? null : SkillConfigManager.getRaw(skill, "description", "");
 
         String iconURL = skill == null ? null : SkillConfigManager.getRaw(skill, "icon-url", SkillConfigManager.getRaw(skill, "icon_url", null));
@@ -46,6 +56,9 @@ public class SkillDescription implements Comparable<SkillDescription> {
         }
 
         this.icon = new ItemStack(Material.PLAYER_HEAD, 1);
+        ItemMeta meta = this.icon.getItemMeta();
+        meta.setCustomModelData(7);
+        this.icon.setItemMeta(meta);
         controller.updateSkillItem(this, player);
     }
 

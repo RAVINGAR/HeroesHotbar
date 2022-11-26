@@ -48,6 +48,7 @@ skills:
     unprepare_lore: "&bRight-click or drop to unprepare"
     delay: "&eDelay: &6$time"
 elements:
+    description: "&6Element $element"
     physical: "&c🗡"
     force: "&f🌊"
     acid: "&a☣"
