@@ -49,7 +49,7 @@ public class GiveSkillCommandExecutor implements CommandExecutor {
         String skillName = args.length > 1 ? args[1] : args[0];
 
         SkillDescription skillDescription = controller.getSkillDescription(player, skillName);
-        if (skillDescription == null || !skillDescription.isValid()) {
+        if (!skillDescription.isValid()) {
             sender.sendMessage(ChatColor.RED + "Unknown skill: " + skillName);
             return true;
         }

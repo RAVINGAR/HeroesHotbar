@@ -83,10 +83,10 @@ public class PlayerListener implements Listener {
     }
 
     private void useSkill(Player player, ItemStack item, Cancellable event) {
-        boolean isSkill = controller.isSkill(item);
-        if (isSkill) {
+        String skillKey = controller.getSkillKey(item);
+        if (skillKey != null && !skillKey.isEmpty()) {
             event.setCancelled(true);
-            scheduler.runTask(controller.getPlugin(), () -> controller.useSkill(player, item));
+            scheduler.runTask(controller.getPlugin(), () -> controller.useSkill(player, skillKey, item));
         }
     }
 
@@ -107,12 +107,17 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onClassChange(AfterClassChangeEvent event) {
         Player player = event.getHero().getPlayer();
-        controller.getActiveSkillSelector(player).refreshAllSkills();
         controller.removeAllSkillItems(player);
+        controller.getActiveSkillSelector(player).refreshAllSkills();
+
     }
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        controller.getActiveSkillSelector(event.getPlayer()).setGuiState(false);
+        SkillSelector selector = controller.getActiveSkillSelectorOrNull(event.getPlayer());
+        if(selector == null) {
+            return;
+        }
+        selector.setGuiState(false);
     }
 }

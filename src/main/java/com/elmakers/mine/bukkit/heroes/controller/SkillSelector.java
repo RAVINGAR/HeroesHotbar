@@ -65,6 +65,7 @@ public class SkillSelector {
         for (String heroesSkill : heroesSkills) {
             descriptions.add(new SkillDescription(controller, player, heroesSkill));
         }
+        descriptions.forEach(skill -> controller.updateSkillItem(skill, player));
 
         if (descriptions.size() == 0) {
             player.sendMessage(controller.getMessage("skills.none", "You have no skills"));
@@ -114,7 +115,8 @@ public class SkillSelector {
         Inventory displayInventory = CompatibilityUtils.createInventory(null, invSize, title);
 
         for (SkillDescription skill : skills) {
-            displayInventory.addItem(skill.updateIcon(controller, player));
+            controller.updateSkillItem(skill.getIcon(), skill, player);
+            displayInventory.addItem(skill.getIcon());
         }
 
         player.closeInventory();

@@ -1,5 +1,8 @@
 package com.elmakers.mine.bukkit.heroes.controller;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,18 +13,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.herocraftonline.heroes.characters.skill.SkillType;
+import com.herocraftonline.heroes.util.Pair;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.configuration.Configuration;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 
 import com.elmakers.mine.bukkit.heroes.utilities.CompatibilityUtils;
@@ -40,6 +51,8 @@ import com.herocraftonline.heroes.characters.skill.SkillConfigManager;
 import com.herocraftonline.heroes.characters.skill.SkillManager;
 import com.herocraftonline.heroes.characters.skill.SkillSetting;
 import org.bukkit.profile.PlayerProfile;
+import org.bukkit.profile.PlayerTextures;
+import org.bukkit.scheduler.BukkitScheduler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -53,6 +66,7 @@ public class HotbarController {
     private static final DecimalFormat SECONDS_FORMATTER = new DecimalFormat("0.##");
 
     private final Plugin plugin;
+    private BukkitScheduler scheduler;
     private final CharacterManager characters;
     private final SkillManager skills;
 
@@ -71,8 +85,11 @@ public class HotbarController {
 
     private final Map<SkillType, String> elementMap = new HashMap<>();
 
+    private final Map<String, PlayerProfile> playerProfiles = new HashMap<>();
+
     public HotbarController(Plugin owningPlugin, Heroes heroesPlugin) {
         this.plugin = owningPlugin;
+        this.scheduler = plugin.getServer().getScheduler();
         characters = heroesPlugin.getCharacterManager();
         skills = heroesPlugin.getSkillManager();
         elementsEnabled = !getMessage("elements.description", "").isEmpty();
@@ -97,10 +114,10 @@ public class HotbarController {
         elementMap.put(SkillType.ABILITY_PROPERTY_ENDER, "Psychic");
 
         elementMap.put(SkillType.ABILITY_PROPERTY_LIGHT, "Radiant");
-        elementMap.put(SkillType.ABILITY_PROPERTY_SONG, "radiant");
+        elementMap.put(SkillType.ABILITY_PROPERTY_SONG, "Radiant");
 
-        elementMap.put(SkillType.ABILITY_PROPERTY_WITHER, "necrotic");
-        elementMap.put(SkillType.ABILITY_PROPERTY_DARK, "necrotic");
+        elementMap.put(SkillType.ABILITY_PROPERTY_WITHER, "Necrotic");
+        elementMap.put(SkillType.ABILITY_PROPERTY_DARK, "Necrotic");
     }
 
     public void initialize() {
@@ -120,8 +137,51 @@ public class HotbarController {
         int hotbarUpdateInterval = config.getInt("update_interval");
         if (hotbarUpdateInterval > 0) {
             final HotbarUpdateTask updateTask = new HotbarUpdateTask(this);
-            plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, updateTask, 0, hotbarUpdateInterval);
+            plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, updateTask, 20, hotbarUpdateInterval);
         }
+
+    }
+
+    private void loadAllSkills() {
+        //todo fix this shiz
+        //  load all skills and profiles here, asynchronously ish. After player profile update it adds it to the list
+        Heroes.getInstance().getSkillManager().getSkills().forEach(skill -> {
+
+        });
+    }
+
+    private PlayerProfile getProfile(String url) {
+        PlayerProfile profile = playerProfiles.get(url);
+        if(profile == null) {
+            Optional<PlayerProfile> optional = loadProfile(url);
+            if(optional.isPresent()) {
+                profile = optional.get();
+                playerProfiles.put(url, profile);
+                profile.update().thenAcceptAsync(p -> playerProfiles.put(url, p), this::runSyncTask);
+            }
+            else {
+                profile = unknownIcon;
+            }
+        }
+        return profile;
+    }
+
+    private Optional<PlayerProfile> loadProfile(String url) {
+        PlayerProfile profile = plugin.getServer().createPlayerProfile(UUID.nameUUIDFromBytes(url.getBytes(StandardCharsets.UTF_8)), url);
+        PlayerTextures texture = profile.getTextures();
+        try {
+            texture.setSkin(new URL(url));
+        }
+        catch(MalformedURLException e) {
+            plugin.getLogger().log(Level.WARNING, () -> "Url was malformed for icon url " + url);
+            return Optional.empty();
+        }
+        profile.setTextures(texture);
+        return Optional.of(profile);
+    }
+
+    public void runSyncTask(Runnable runnable) {
+        this.scheduler.runTask(plugin, runnable);
     }
 
     public void setUnknownIcon(PlayerProfile profile) {
@@ -201,6 +261,7 @@ public class HotbarController {
         List<String> lore = new ArrayList<>();
         addSkillLore(skill, lore, player);
         CompatibilityUtils.setLore(item, lore);
+
     }
 
     public boolean isUseRightClicks() { return useRightClicks; }
@@ -452,6 +513,11 @@ public class HotbarController {
         return selector;
     }
 
+    @Nullable
+    public SkillSelector getActiveSkillSelectorOrNull(HumanEntity player) {
+        return selectors.get(player.getUniqueId());
+    }
+
     @Nonnull
     public SkillSelector addActiveSkillSelector(HumanEntity player) {
         SkillSelector selector = new SkillSelector(this, (Player) player);
@@ -471,11 +537,8 @@ public class HotbarController {
         return CompatibilityUtils.hasMeta(item, legacyNBTKey);
     }
 
-    public void useSkill(Player player, ItemStack item) {
-        String skillKey = getSkillKey(item);
-        if (skillKey != null && !skillKey.isEmpty()) {
-            plugin.getServer().dispatchCommand(player, "skill " + skillKey);
-        }
+    public void useSkill(Player player, String skillKey, ItemStack item) {
+        plugin.getServer().dispatchCommand(player, "skill " + skillKey);
     }
 
     public void removeAllSkillItems(Player player) {
