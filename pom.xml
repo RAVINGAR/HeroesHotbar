@@ -14,7 +14,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<version.java>11</version.java>
+		<version.java>17</version.java>
 		<spigot.version>1.18.2-R0.1-SNAPSHOT</spigot.version>
 	</properties>
 
@@ -82,7 +82,7 @@
 		<dependency>
 			<groupId>com.herocraftonline.heroes</groupId>
 			<artifactId>Heroes</artifactId>
-			<version>1.9.19-RELEASE</version>
+			<version>1.9.26-RELEASE</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
@@ -110,7 +110,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.2.4</version>
+				<version>3.4.1</version>
 				<executions>
 					<execution>
 						<phase>package</phase>

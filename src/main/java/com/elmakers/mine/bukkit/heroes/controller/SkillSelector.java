@@ -3,8 +3,6 @@ package com.elmakers.mine.bukkit.heroes.controller;
 import java.util.*;
 import java.util.logging.Level;
 
-import com.elmakers.mine.bukkit.heroes.controller.HotbarController;
-import com.elmakers.mine.bukkit.heroes.controller.SkillDescription;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryAction;
@@ -13,7 +11,7 @@ import org.bukkit.inventory.Inventory;
 
 import com.elmakers.mine.bukkit.heroes.utilities.CompatibilityUtils;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 
 public class SkillSelector {
     private final HotbarController controller;
@@ -67,6 +65,7 @@ public class SkillSelector {
         for (String heroesSkill : heroesSkills) {
             descriptions.add(new SkillDescription(controller, player, heroesSkill));
         }
+        descriptions.forEach(skill -> controller.updateSkillItem(skill, player));
 
         if (descriptions.size() == 0) {
             player.sendMessage(controller.getMessage("skills.none", "You have no skills"));
@@ -116,7 +115,8 @@ public class SkillSelector {
         Inventory displayInventory = CompatibilityUtils.createInventory(null, invSize, title);
 
         for (SkillDescription skill : skills) {
-            displayInventory.addItem(skill.updateIcon(controller, player));
+            controller.updateSkillItem(skill.getIcon(), skill, player);
+            displayInventory.addItem(skill.getIcon());
         }
 
         player.closeInventory();
@@ -132,8 +132,11 @@ public class SkillSelector {
         return guiOpen;
     }
 
-    @Nullable
+    @Nonnull
     public SkillDescription getSkill(String skillName) {
+        if(!this.allSkills.containsKey(skillName)) {
+            throw new IllegalArgumentException("Skill called " + skillName + " was not found in skill selector!");
+        }
         return this.allSkills.get(skillName);
     }
 

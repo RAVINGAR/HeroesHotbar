@@ -2,9 +2,12 @@ package com.elmakers.mine.bukkit.heroes.utilities;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 
 import com.elmakers.mine.bukkit.heroes.HotbarPlugin;

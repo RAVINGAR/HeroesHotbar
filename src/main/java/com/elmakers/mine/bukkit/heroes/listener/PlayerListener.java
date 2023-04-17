@@ -6,6 +6,7 @@ import com.herocraftonline.heroes.api.events.AfterClassChangeEvent;
 import com.herocraftonline.heroes.api.events.HeroChangeLevelEvent;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -14,14 +15,18 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.scheduler.BukkitScheduler;
 
 public class PlayerListener implements Listener {
     private final HotbarController controller;
+    private final BukkitScheduler scheduler;
 
     public PlayerListener(HotbarController controller) {
         this.controller = controller;
+        this.scheduler = controller.getPlugin().getServer().getScheduler();
     }
 
     @EventHandler
@@ -44,7 +49,7 @@ public class PlayerListener implements Listener {
 
         // Catch lag-related glitches dropping items from GUIs
         SkillSelector selector = controller.getActiveSkillSelector(player);
-        if (selector != null && selector.isGuiOpen()) {
+        if (selector.isGuiOpen()) {
             event.setCancelled(true);
         }
     }
@@ -60,30 +65,28 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerEquip(PlayerItemHeldEvent event) {
-        Player player = event.getPlayer();
-        PlayerInventory inventory = player.getInventory();
-        ItemStack next = inventory.getItem(event.getNewSlot());
-
-        boolean isSkill = controller.isSkill(next);
-        if (isSkill) {
-            controller.useSkill(player, next);
-            event.setCancelled(true);
+        if(controller.isUseRightClicks()) {
+            return;
         }
+        Player player = event.getPlayer();
+        useSkill(player, player.getInventory().getItem(event.getNewSlot()), event);
     }
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event)
     {
+        if (event.getHand() != EquipmentSlot.HAND) return;
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
         Player player = event.getPlayer();
-        PlayerInventory inventory = player.getInventory();
-        ItemStack itemInHand = inventory.getItemInMainHand();
+        useSkill(player, player.getInventory().getItemInMainHand(), event);
+    }
 
-        boolean isSkill = controller.isSkill(itemInHand);
-        if (isSkill) {
-            controller.useSkill(player, itemInHand);
+    private void useSkill(Player player, ItemStack item, Cancellable event) {
+        String skillKey = controller.getSkillKey(item);
+        if (skillKey != null && !skillKey.isEmpty()) {
             event.setCancelled(true);
+            scheduler.runTask(controller.getPlugin(), () -> controller.useSkill(player, skillKey, item));
         }
     }
 
@@ -98,30 +101,23 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onLevelUp(HeroChangeLevelEvent event) {
-        SkillSelector selector = controller.getActiveSkillSelector(event.getHero().getPlayer());
-        if(selector != null) {
-            selector.updateSkillsForLevelUp();
-        }
+        controller.getActiveSkillSelector(event.getHero().getPlayer()).updateSkillsForLevelUp();
     }
 
     @EventHandler
     public void onClassChange(AfterClassChangeEvent event) {
         Player player = event.getHero().getPlayer();
-        SkillSelector selector = controller.getActiveSkillSelector(player);
-        if(selector != null) {
-            selector.refreshAllSkills();
-            controller.removeAllSkillItems(player);
-        }
-        else {
-            controller.addActiveSkillSelector(event.getHero().getPlayer());
-        }
+        controller.removeAllSkillItems(player);
+        controller.getActiveSkillSelector(player).refreshAllSkills();
+
     }
 
     @EventHandler
-    public void onInventoryClose(InventoryCloseEvent e) {
-        SkillSelector selector = controller.getActiveSkillSelector(e.getPlayer());
-        if(selector != null) {
-            selector.setGuiState(false);
+    public void onInventoryClose(InventoryCloseEvent event) {
+        SkillSelector selector = controller.getActiveSkillSelectorOrNull(event.getPlayer());
+        if(selector == null) {
+            return;
         }
+        selector.setGuiState(false);
     }
 }
