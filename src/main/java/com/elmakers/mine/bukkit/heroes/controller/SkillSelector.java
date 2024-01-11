@@ -18,7 +18,7 @@ public class SkillSelector {
     private final Player player;
 
     private int page;
-    private Map<String, SkillDescription> allSkills;
+    private final Map<String, SkillDescription> allSkills;
     private String inventoryTitle;
     private boolean guiOpen;
 
@@ -26,17 +26,12 @@ public class SkillSelector {
         this.controller = controller;
         this.player = player;
         guiOpen = false;
-
-        updateSkills();
-    }
-
-    public void updateSkills() {
         this.allSkills = new LinkedHashMap<>();
         getAllSkills().forEach(skill -> allSkills.put(skill.getKey(), skill));
     }
 
     public void updateSkillsForLevelUp() { //Need to update lore, and availability as well, updateSkills is used initially
-        this.allSkills = new LinkedHashMap<>();
+        this.allSkills.clear();
         getAllSkills().forEach(skill -> {
             controller.updateSkillItem(skill.getIcon(), skill, player);
             List<String> lore = new ArrayList<>();
@@ -47,7 +42,7 @@ public class SkillSelector {
 
     //Resets all skills and recalculates them. This should only ever be called on a class change.
     public void refreshAllSkills() {
-        this.allSkills = new LinkedHashMap<>();
+        this.allSkills.clear();
         getAllSkills().forEach(skill -> allSkills.put(skill.getKey(), skill));
     }
 
@@ -67,7 +62,7 @@ public class SkillSelector {
         }
         descriptions.forEach(skill -> controller.updateSkillItem(skill, player));
 
-        if (descriptions.size() == 0) {
+        if (descriptions.isEmpty()) {
             player.sendMessage(controller.getMessage("skills.none", "You have no skills"));
         }
 
@@ -101,7 +96,7 @@ public class SkillSelector {
             skills.add(iterator.next());
             i++;
         }
-        if (skills.size() == 0) {
+        if (skills.isEmpty()) {
             String messageTemplate = controller.getMessage("skills.none_on_page", "No skills on page $page");
             player.sendMessage(messageTemplate.replace("$page", Integer.toString(page)));
             return;

@@ -5,7 +5,7 @@
 
 	<groupId>com.elmakers.mine.bukkit</groupId>
 	<artifactId>HeroesHotbar</artifactId>
-	<version>3.0</version>
+	<version>1.10</version>
 
 	<name>Heroes Hotbar</name>
 	<description>A hotbar GUI add-on to the Heroes Bukkit plugin</description>
@@ -82,7 +82,7 @@
 		<dependency>
 			<groupId>com.herocraftonline.heroes</groupId>
 			<artifactId>Heroes</artifactId>
-			<version>1.9.26-RELEASE</version>
+			<version>1.10-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>

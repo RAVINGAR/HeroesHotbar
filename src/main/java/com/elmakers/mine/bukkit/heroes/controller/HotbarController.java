@@ -333,6 +333,7 @@ public class HotbarController {
             getElementFromSkill(skill).ifPresent(element -> {
                 String e = getMessage("elements.description", "");
                 if(e != null && !e.isEmpty()) {
+                    levelDescription.append(" ");
                     levelDescription.append(e.replace("$element", element));
                 }
             });
@@ -346,7 +347,7 @@ public class HotbarController {
             CompatibilityUtils.wrapText(description, MAX_LORE_LENGTH, lore);
         }
 
-        int delay = SkillConfigManager.getUseSetting(hero, skill, SkillSetting.DELAY, 0, true);
+        int delay = SkillConfigManager.getCachedUseSetting(hero, skill, SkillSetting.DELAY, 0);
         if(delay > 0) {
             String delayDescription = getTimeDescription(delay);
             if(delayDescription != null && !delayDescription.isEmpty()) {
@@ -354,7 +355,7 @@ public class HotbarController {
             }
         }
 
-        int cooldown = SkillConfigManager.getUseSetting(hero, skill, SkillSetting.COOLDOWN, 0, true);
+        int cooldown = SkillConfigManager.getCachedUseSetting(hero, skill, SkillSetting.COOLDOWN, 0);
         if (cooldown > 0) {
             String cooldownDescription = getTimeDescription(cooldown);
             if (cooldownDescription != null && !cooldownDescription.isEmpty()) {
@@ -362,13 +363,13 @@ public class HotbarController {
             }
         }
 
-        int mana = SkillConfigManager.getUseSetting(hero, skill, SkillSetting.MANA, 0, true);
+        int mana = SkillConfigManager.getCachedUseSetting(hero, skill, SkillSetting.MANA, 0);
         if (mana > 0) {
             String manaDescription = getMessage("costs.heroes_mana").replace("$amount", Integer.toString(mana));
             lore.add(getMessage("skills.costs_description").replace("$description", manaDescription));
         }
 
-        int stamina = SkillConfigManager.getUseSetting(hero, skill, SkillSetting.STAMINA, 0, true);
+        int stamina = SkillConfigManager.getCachedUseSetting(hero, skill, SkillSetting.STAMINA, 0);
         if (stamina > 0) {
             String staminaDescription = getMessage("costs.heroes_stamina").replace("$amount", Integer.toString(stamina));
             lore.add(getMessage("skills.costs_description").replace("$description", staminaDescription));
@@ -429,7 +430,7 @@ public class HotbarController {
         for (String skillName : skillNames) {
             Skill skill = skills.getSkill(skillName);
             if (skill == null) continue;
-            int level = SkillConfigManager.getUseSetting(hero, skill, SkillSetting.LEVEL, 1, true);
+            int level = SkillConfigManager.getCachedUseSetting(hero, skill, SkillSetting.LEVEL, 1);
             skillMap.put(level, skill);
         }
         return skillMap;

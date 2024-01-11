@@ -34,7 +34,7 @@ public class PlayerListener implements Listener {
         controller.clearActiveSkillSelector(event.getPlayer());
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoin(PlayerJoinEvent event) {
         controller.addActiveSkillSelector(event.getPlayer());
     }
@@ -101,7 +101,9 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onLevelUp(HeroChangeLevelEvent event) {
-        controller.getActiveSkillSelector(event.getHero().getPlayer()).updateSkillsForLevelUp();
+        scheduler.scheduleSyncDelayedTask(controller.getPlugin(), () -> {
+            controller.getActiveSkillSelector(event.getHero().getPlayer()).updateSkillsForLevelUp();
+        });
     }
 
     @EventHandler

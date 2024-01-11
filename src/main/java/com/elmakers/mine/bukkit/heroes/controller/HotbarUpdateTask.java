@@ -69,6 +69,9 @@ public class HotbarUpdateTask implements Runnable {
 
             Hero hero = controller.getHero(player);
             ItemMeta meta = skillItem.getItemMeta();
+            if(!meta.hasCustomModelData()) {
+                meta.setCustomModelData(5);
+            }
             int data = meta.getCustomModelData();
             if(requiredMana > hero.getMana() || requiredStamina > hero.getStamina()) {
                 if(data != 5) {

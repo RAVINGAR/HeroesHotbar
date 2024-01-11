@@ -40,6 +40,7 @@ public class SkillDescription implements Comparable<SkillDescription> {
             }
         }
         this.name = skillDisplayName;
+
         this.description = skill == null ? null : SkillConfigManager.getRaw(skill, "description", "");
 
         iconURL = skill == null ? null : SkillConfigManager.getRaw(skill, "icon-url", SkillConfigManager.getRaw(skill, "icon_url", null));
@@ -94,8 +95,7 @@ public class SkillDescription implements Comparable<SkillDescription> {
 
     public void setProfileState(ItemStack icon, boolean enabled) {
         if(icon.getType() == Material.PLAYER_HEAD) {
-
-            if(enabled && !iconProfile.equals(currentProfile)) {
+            if(enabled && iconProfile != null && !iconProfile.equals(currentProfile)) {
                 currentProfile = iconProfile;
                 CompatibilityUtils.setSkullProfile(icon, iconProfile);
             }
